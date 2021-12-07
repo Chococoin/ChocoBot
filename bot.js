@@ -1,8 +1,38 @@
-'use strict'
+// 'use strict'
 
 const { Telegraf } = require('telegraf')
 const fs = require('fs')
 const { Markup } = Telegraf
+
+const mongoose = require('mongoose')
+const User = require('./Schemas/User.js')
+
+db()
+ .then( () => console.log("Mongo database connected") )
+ .catch( err => console.log(`Mongo database not connected ${err}`) )
+
+async function db() {
+    await mongoose.connect('mongodb://127.0.0.1:27017/chocobot')
+}
+
+async function newUser(data) {
+    console.log("Data", data);
+    let username = data.from.username
+    let name = data.from.first_name
+    let language_code = data.from.language_code
+    let telegramID = data.from.id
+    let sinceMessageID = data.message_id
+    let referer = 0
+    const user = new User({ username, name, language_code, telegramID, referer, sinceMessageID })
+    user.save()
+}
+
+async function newSession(data) {
+    let partner = await User.findOne({username: data.username})
+    partner.session++
+    partner.save()
+    console.log(`${partner.username} has visited the bot ${partner.session} times`)
+}
 
 const telegramApiKey = fs.readFileSync(".telegramApiKey").toString().trim()
 const PAYMENT_TOKEN = fs.readFileSync(".stripeApiKey").toString().trim()
@@ -69,6 +99,17 @@ function createInvoice (product) {
     }
 }
 
+app.use(async (ctx) => {
+    let data = ctx.update.message
+    let visitor = await User.findOne({ telegramID: data.from.id})
+    console.log("Visitor", visitor)
+    if(visitor.length === 0) {
+        newUser(ctx.update.message)
+    } else {
+        newSession(visitor)
+    }
+})
+
 // Start command
 app.command('start', ({ reply }) => {
     reply('Bevenuto! Io sono 🤖 robot della Chocosfera🍫. Cerco ciocconauti 👨🏼‍🚀 disposti a imbarcarsi 🚀 in una avventura divina 😋. Se ti interesano i dettagli clicca su \/continua.')
@@ -96,8 +137,8 @@ app.on('successful_payment', (ctx) => {
     console.log(`${ctx.from.first_name} (${ctx.from.username}) ha pagato ${ctx.message.successful_payment.total_amount / 100} €.`)
 })
 
-app.command('location', (ctx) => {
-    console.log(ctx.update.message)
-})
+// app.command('venue', (ctx) => {
+//     console.log("Location", ctx.message)
+// })
 
 app.startPolling()
