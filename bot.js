@@ -1,8 +1,7 @@
 // 'use strict'
 
-const { Telegraf } = require('telegraf')
+const { Telegraf, Markup } = require('telegraf')
 const fs = require('fs')
-const { Markup } = Telegraf
 
 const mongoose = require('mongoose')
 const User = require('./Schemas/User.js')
@@ -31,7 +30,7 @@ async function newSession(data) {
     let partner = await User.findOne({username: data.username})
     partner.session++
     partner.save()
-    console.log(`${partner.username} has visited the bot ${partner.session} times`)
+    console.log(`${partner.username} has interacted with the bot ${partner.session} times`)
 }
 
 const telegramApiKey = fs.readFileSync(".telegramApiKey").toString().trim()
@@ -99,7 +98,7 @@ function createInvoice (product) {
     }
 }
 
-app.use(async (ctx) => {
+async function dbCount(ctx) {
     let data = ctx.update.message
     let visitor = await User.findOne({ telegramID: data.from.id})
     console.log("Visitor", visitor)
@@ -108,20 +107,30 @@ app.use(async (ctx) => {
     } else {
         newSession(visitor)
     }
-})
+}
 
 // Start command
-app.command('start', ({ reply }) => {
-    reply('Bevenuto! Io sono 🤖 robot della Chocosfera🍫. Cerco ciocconauti 👨🏼‍🚀 disposti a imbarcarsi 🚀 in una avventura divina 😋. Se ti interesano i dettagli clicca su \/continua.')
+app.command('start', ( ctx ) => {
+    ctx.reply('Bevenuto! Io sono 🤖 robot della Chocosfera🍫. Cerco ciocconauti 👨🏼‍🚀 disposti a imbarcarsi 🚀 in una avventura divina 😋. Se ti interesano i dettagli clicca su \/continua.')
+    dbCount(ctx)
 })
 
-app.command('continua', ({ reply }) => reply('La Chocosfera è la dimensione dove possiamo divertirci dando il meglio di noi! In questo momento siamo nella fase del crowdfunding se vuoi partecipare a compiere questa missione lo poi fare acquistando uno dei nostri \/prodotti'))
-app.command('aiuto', ({ reply }) => reply('Ricomincia con \/start, darò il mio meglio per guidarti.'))
-app.command('prodotti', ({ replyWithMarkdown }) => replyWithMarkdown(
-    `Essere un ciocconauta è essere un early adopter. Una cosa meravigliosa secondo me.\nNon perdere l\'opportunità di essere un pioniere nella Chocosfera 🤖❤️🌳🍫.
-     ${products.reduce((acc, p) => { return (acc += `*${p.name}* - ${p.price} €\n     `)
-     },'')}`, Markup.keyboard(products.map(p => p.name)).oneTime().resize().extra()
-))
+app.command('continua', ( ctx ) => {
+    ctx.reply('La Chocosfera è la dimensione dove possiamo divertirci dando il meglio di noi! In questo momento siamo nella fase del crowdfunding se vuoi partecipare a compiere questa missione lo poi fare acquistando uno dei nostri \/prodotti')
+    dbCount(ctx)
+})
+app.command('aiuto', ( ctx ) => {
+    ctx.reply('Ricomincia con \/start, darò il mio meglio per guidarti.')
+    dbCount(ctx)
+})
+
+app.command('prodotti', ( ctx ) => {
+    ctx.replyWithMarkdown(
+        `Essere un ciocconauta è essere un early adopter. Una cosa meravigliosa secondo me.\nNon perdere l\'opportunità di essere un pioniere nella Chocosfera 🤖❤️🌳🍫.
+        ${products.reduce((acc, p) => { return (acc += `*${p.name}* - ${p.price} €\n     `)
+        },'')}`, Markup.keyboard(products.map(p => p.name)).oneTime().resize())
+    dbCount(ctx)
+})
 
 // Order product
 products.forEach(p => {
@@ -132,8 +141,8 @@ products.forEach(p => {
 })
 
 // Handle payment callbacks
-app.on('pre_checkout_query', ({ answerPreCheckoutQuery }) => answerPreCheckoutQuery(true))
-app.on('successful_payment', (ctx) => {
+app.on('pre_checkout_query', ( ctx ) => ctx.answerPreCheckoutQuery(true))
+app.on('successful_payment', ( ctx ) => {
     console.log(`${ctx.from.first_name} (${ctx.from.username}) ha pagato ${ctx.message.successful_payment.total_amount / 100} €.`)
 })
 
