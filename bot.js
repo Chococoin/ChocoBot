@@ -40,46 +40,10 @@ const app = new Telegraf(telegramApiKey)
 
 const products = [
     {
-        name: 'Chococoin Brown Paper',
-        price: 1.00,
-        description: 'Il libro che spiega come il chococoin e la chocosfera servirano per migliorare il mondo partendo dalla trasparenza dentro la filiera del cioccolato',
-        photoUrl: 'https://i.ibb.co/fvH96HL/Cacao-In-Progress.png'
-    },
-    {
-        name: 'Combo ChocoCrypto',
-        price: 15.00,
-        description: 'Collabora con il progetto aquistando in prevendita le tre tavolette ChocoCrypto',
-        photoUrl: 'https://i.ibb.co/0fWf8YL/Mockup-Choco-Crypto.jpg'
-    },
-    {
-        name: 'Singola Tavoletta ChocoCrypto',
-        price: 5.00,
-        description: 'Collabora con il progetto aquistando in prevendita una tavoletta ChocoCrypto. Scegli uno dei tre sapori "White", "Milk" o "Dark"',
-        photoUrl: 'https://i.ibb.co/0fWf8YL/Mockup-Choco-Crypto.jpg'
-    },
-    {
         name: 'Adopzione Albero di Cacao di Massimo Pincay',
         price: 25.00,
         description: 'Il cuore del progetto ChocoCryto parte dal fatto che doviamo avere cura di chi ci porta da mangiare. Adotta un albero di cacao per ricevere a vita il migliore cioccolato dal mondo con un sconto del 50%',
         photoUrl: 'https://i.ibb.co/hB7VmDW/2021-07-13-12-43-13.jpg'
-    },
-    {
-        name: 'Cartolina Chocosfera',
-        price: 2.00,
-        description: 'Sei diventato un early adopter del nostro progetto e vorresti un souvenir del prossimo unicorno italiano in fase embrionaria? Magari una cartolina di collezione spedita direttamente dalla Chocosfera fa per te.',
-        photoUrl: 'https://i.ibb.co/NNwCGJt/cartolina.jpg'
-    },
-    {
-        name: 'Computer Choco Harvester',
-        price: 90.00,
-        description: 'Il computer più avanzato per "minare" cripto moneta, usa un albero di cacao invece di elettricità. Educhiamo i nostri ragazzi a trovare soluzioni creative ai problemi del mondo..',
-        photoUrl: 'https://i.ibb.co/qg5T8kH/Screenshot-2021-07-11-at-18-52-24.jpg'
-    },
-    {
-        name: 'Cryptocita',
-        price: 8.00,
-        description: 'Crema di nocciole di filliera tracciata con la blockchain. Con le migliore nocciole del piemonte.',
-        photoUrl: 'https://i.ibb.co/vm22R4p/cryptocita-copy.jpg'
     }
 ]
 
