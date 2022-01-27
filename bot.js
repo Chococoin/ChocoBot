@@ -88,6 +88,10 @@ app.command('aiuto', ( ctx ) => {
     dbCount(ctx)
 })
 
+app.command('adopzioni', ( ctx ) => {
+    ctx.reply('Ora ci sono 4 alberi adoptati dal signore Carlo Antonello. Grazie Carlo!')
+})
+
 app.command('prodotti', ( ctx ) => {
     ctx.replyWithMarkdown(
         `Essere un ciocconauta è essere un early adopter. Una cosa meravigliosa secondo me.\nNon perdere l\'opportunità di essere un pioniere nella Chocosfera 🤖❤️🌳🍫.
