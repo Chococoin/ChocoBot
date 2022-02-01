@@ -3,10 +3,10 @@
 const { Telegraf, Markup } = require('telegraf')
 const fs = require('fs')
 
-const mongoose = require('mongoose')
+/*const mongoose = require('mongoose')
 const User = require('./Schemas/User.js')
 
-db()
+//db()
  .then( () => console.log("Mongo database connected") )
  .catch( err => console.log(`Mongo database not connected ${err}`) )
 
@@ -32,6 +32,7 @@ async function newSession(data) {
     partner.save()
     console.log(`${partner.username} has interacted with the bot ${partner.session} times`)
 }
+*/
 
 const telegramApiKey = fs.readFileSync(".telegramApiKey").toString().trim()
 const PAYMENT_TOKEN = fs.readFileSync(".stripeApiKey").toString().trim()
@@ -62,7 +63,7 @@ function createInvoice (product) {
     }
 }
 
-async function dbCount(ctx) {
+/*async function dbCount(ctx) {
     let data = ctx.update.message
     let visitor = await User.findOne({ telegramID: data.from.id})
     console.log("Visitor", visitor)
@@ -71,12 +72,12 @@ async function dbCount(ctx) {
     } else {
         newSession(visitor)
     }
-}
+}*/
 
 // Start command
 app.command('start', ( ctx ) => {
     ctx.reply('Bevenuto! Io sono 🤖 robot della Chocosfera🍫. Cerco ciocconauti 👨🏼‍🚀 disposti a imbarcarsi 🚀 in una avventura divina 😋. Se ti interesano i dettagli clicca su \/continua.')
-    dbCount(ctx)
+    //dbCount(ctx)
 })
 
 app.command('continua', ( ctx ) => {
@@ -85,7 +86,7 @@ app.command('continua', ( ctx ) => {
 })
 app.command('aiuto', ( ctx ) => {
     ctx.reply('Ricomincia con \/start, darò il mio meglio per guidarti.')
-    dbCount(ctx)
+    //dbCount(ctx)
 })
 
 app.command('adopzioni', ( ctx ) => {
@@ -97,7 +98,7 @@ app.command('prodotti', ( ctx ) => {
         `Essere un ciocconauta è essere un early adopter. Una cosa meravigliosa secondo me.\nNon perdere l\'opportunità di essere un pioniere nella Chocosfera 🤖❤️🌳🍫.
         ${products.reduce((acc, p) => { return (acc += `*${p.name}* - ${p.price} €\n     `)
         },'')}`, Markup.keyboard(products.map(p => p.name)).oneTime().resize())
-    dbCount(ctx)
+    //dbCount(ctx)
 })
 
 // Order product
