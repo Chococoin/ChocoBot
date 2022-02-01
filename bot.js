@@ -41,7 +41,7 @@ const app = new Telegraf(telegramApiKey)
 const products = [
     {
         name: 'Adopzione Albero di Cacao di Massimo Pincay',
-        price: 25.00,
+        price: 30.00,
         description: 'Il cuore del progetto ChocoCryto parte dal fatto che doviamo avere cura di chi ci porta da mangiare. Adotta un albero di cacao per ricevere a vita il migliore cioccolato dal mondo con un sconto del 50%',
         photoUrl: 'https://i.ibb.co/hB7VmDW/2021-07-13-12-43-13.jpg'
     }
@@ -80,7 +80,7 @@ app.command('start', ( ctx ) => {
 })
 
 app.command('continua', ( ctx ) => {
-    ctx.reply('La Chocosfera è la dimensione dove possiamo divertirci dando il meglio di noi! In questo momento siamo nella fase del crowdfunding se vuoi partecipare a compiere questa missione lo poi fare acquistando uno dei nostri \/prodotti')
+    ctx.reply('La Chocosfera è la dimensione dove possiamo divertirci dando il meglio di noi! In questo momento siamo nella fase del adopzioni dei alberi 🌳 se vuoi partecipare a compiere questa missione lo poi fare acquistando uno dei nostri \/prodotti')
     dbCount(ctx)
 })
 app.command('aiuto', ( ctx ) => {
