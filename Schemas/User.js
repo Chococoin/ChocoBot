@@ -11,7 +11,8 @@ const UserSchema = new Schema({
   session: { type: Number, default: 1 },
   email: { type: String, required: false },
   link: { type: String, required: false, default: "broken_link" },
-  trees: {type: Number, default: 0 }, 
+  trees: { type: Number, default: 0 },
+  address: { type: String, default: undefined },
 });
 
 module.exports = model('User', UserSchema)

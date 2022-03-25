@@ -189,11 +189,14 @@ products.forEach(p => {
 
 app.on('chat_join_request', async (ctx) => {
     console.log(ctx.update.chat_join_request)
+    let chatId = ctx.update.chat_join_request.chat.id
+    let userId = ctx.update.chat_join_request.from.id
     let referer = ctx.update.chat_join_request.invite_link.name
     console.log("Referer", referer)
     console.log("Referee", ctx.update)
     let user = await User.find({ username: referer })
     if( user.username === referer ) {
+        await ctx.approveChatJoinRequest(userId)
         newUser(ctx)
     }
 })
