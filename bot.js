@@ -15,15 +15,24 @@ async function db() {
     await mongoose.connect(process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017/chocobot')
 }
 
-async function newUser(ctx) {
-    let { invite_link : link } = await createLink(ctx)
-    let data = ctx.update.message
-    let username = data.from.username
-    let name = data.from.first_name
-    let language_code = data.from.language_code
-    let telegramID = data.from.id
-    let sinceMessageID = data.message_id
-    let referer = 0
+async function newUser(ctx, origin) {
+    let data, referer
+    let { invite_link : link } = await createLink(ctx, origin)
+    if(origin === 'direct') {
+        data = ctx.update.message.from
+        referer = 0
+    }
+    if(origin === 'indirect') {
+        data = ctx.update.chat_join_request.from
+        referer = ctx.update.chat_join_request.invite_link.name.split('-')[1]
+        console.log("DATA", data)
+    }
+    if(origin === 'indirect') console.log("Indirecto", ctx)
+    let username = data.username || 'No_username'
+    let name = data.first_name
+    let language_code = data.language_code
+    let telegramID = data.id
+    let sinceMessageID = data.message_id ? data.message_id : 0
     const user = new User({ username, name, language_code, telegramID, referer, sinceMessageID, link })
     user.save()
     console.log(`${username} is a new user with referer link ${link}.`)
@@ -36,10 +45,10 @@ async function newSession(data) {
     console.log(`${partner.username} has interacted with the bot ${partner.session} times`)
 }
 
-const telegramApiKey = fs.readFileSync(".telegramApiKey").toString().trim()
+const TELEGRAM_APIKEY = fs.readFileSync(".telegramApiKey").toString().trim()
 const PAYMENT_TOKEN = fs.readFileSync(".stripeApiKey").toString().trim()
 
-const app = new Telegraf(telegramApiKey)
+const app = new Telegraf(TELEGRAM_APIKEY)
 
 const products = [
     {
@@ -74,14 +83,27 @@ async function dbCount(ctx) {
     if(visitor) {
         newSession(visitor)
     } else {
-        newUser(ctx)
+        newUser(ctx, 'direct')
     }
 }
 
-async function createLink(ctx){
-    let link = await ctx.createChatInviteLink({ expire_date: 1800000000, creates_join_request: true, name: ctx.update.message.from.username });
-    console.log("From createlink:", link)
-    return link
+async function createLink(ctx, origin){
+    let Name = false
+    if (origin === 'direct'){
+        Name = ctx.update.message.from.username + "-" + ctx.update.message.from.id
+    } else {
+        Name = ctx.update.chat_join_request.from.username + "-" + ctx.update.chat_join_request.from.id
+    }
+    if(Name){
+        let link
+        try {
+            link = await ctx.createChatInviteLink({ expire_date: 1800000000, creates_join_request: true, name : Name })
+            return link
+        } catch(e) {
+            console.log("ERROR: ", e)
+        }
+
+    }
 }
 
 // Start command
@@ -112,6 +134,19 @@ app.help((ctx) => {
 
 app.command('test', ( ctx ) => {
     ctx.replyWithDice()
+})
+
+app.command('asklink', async ctx => {
+    let fromId = ctx.update.message.from.id
+    let user = await User.find({ telegramID : fromId })
+    console.log(user[0])
+    if (user[0]) {
+        let newLink = await createLink(ctx, 'direct')
+        user[0].link = newLink.invite_link
+        console.log("UserLink: ", user[0].link)
+        user[0].save()
+        ctx.reply(`${user[0]}`)
+    }
 })
 
 app.command('ayuda', ( ctx ) => {
@@ -188,16 +223,23 @@ products.forEach(p => {
 })
 
 app.on('chat_join_request', async (ctx) => {
-    console.log(ctx.update.chat_join_request)
+    console.log('chat_join_request', ctx.update.chat_join_request)
     let chatId = ctx.update.chat_join_request.chat.id
-    let userId = ctx.update.chat_join_request.from.id
-    let referer = ctx.update.chat_join_request.invite_link.name
+    let referee = ctx.update.chat_join_request.from.id
+    let referer = parseInt(ctx.update.chat_join_request.invite_link.name.split('-')[1])
     console.log("Referer", referer)
-    console.log("Referee", ctx.update)
-    let user = await User.find({ username: referer })
-    if( user.username === referer ) {
-        await ctx.approveChatJoinRequest(userId)
-        newUser(ctx)
+    console.log("Referee", referee)
+    let user = await User.find({ telegramID: referer })
+    console.log('User:', user[0])
+    if( user[0].telegramID === referer ) {
+        console.log("To be approved")
+        try{
+            await ctx.approveChatJoinRequest(referee)
+            console.log("Approved")
+        } catch(e) {
+            console.log("ERROR")
+        }
+        newUser(ctx, 'indirect')
     }
 })
 
@@ -223,7 +265,7 @@ app.on('successful_payment', ( ctx ) => {
 })
 
 app.on('message', (ctx) => {
-    console.log(ctx.update)
+    console.log("Got as a message", ctx.update)
 })
 
 // app.command('sendLocation', (ctx) => {
