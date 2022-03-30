@@ -17,25 +17,26 @@ async function db() {
 
 async function newUser(ctx, origin) {
     let data, referer
+    console.log("NewUser: ", ctx)
     let { invite_link : link } = await createLink(ctx, origin)
     if(origin === 'direct') {
         data = ctx.update.message.from
+        data.message_id = ctx.update.message.message_id
         referer = 0
     }
     if(origin === 'indirect') {
         data = ctx.update.chat_join_request.from
         referer = ctx.update.chat_join_request.invite_link.name.split('-')[1]
-        console.log("DATA", data)
     }
-    if(origin === 'indirect') console.log("Indirecto", ctx)
     let username = data.username || 'No_username'
     let name = data.first_name
-    let language_code = data.language_code
+    let language = data.language_code
     let telegramID = data.id
     let sinceMessageID = data.message_id ? data.message_id : 0
-    const user = new User({ username, name, language_code, telegramID, referer, sinceMessageID, link })
+    const user = new User({ username, name, language, telegramID, referer, sinceMessageID, link })
     user.save()
     console.log(`${username} is a new user with referer link ${link}.`)
+    return link
 }
 
 async function newSession(data) {
@@ -139,13 +140,11 @@ app.command('test', ( ctx ) => {
 app.command('asklink', async ctx => {
     let fromId = ctx.update.message.from.id
     let user = await User.find({ telegramID : fromId })
-    console.log(user[0])
     if (user[0]) {
         let newLink = await createLink(ctx, 'direct')
         user[0].link = newLink.invite_link
-        console.log("UserLink: ", user[0].link)
         user[0].save()
-        ctx.reply(`${user[0]}`)
+        ctx.reply(`${user[0].name} has a new link ${user[0].link}`)
     }
 })
 
@@ -223,8 +222,7 @@ products.forEach(p => {
 })
 
 app.on('chat_join_request', async (ctx) => {
-    console.log('chat_join_request', ctx.update.chat_join_request)
-    let chatId = ctx.update.chat_join_request.chat.id
+    console.log('CHAT_JOIN_REQUEST: ', ctx.update.chat_join_request)
     let referee = ctx.update.chat_join_request.from.id
     let referer = parseInt(ctx.update.chat_join_request.invite_link.name.split('-')[1])
     console.log("Referer", referer)
@@ -232,14 +230,16 @@ app.on('chat_join_request', async (ctx) => {
     let user = await User.find({ telegramID: referer })
     console.log('User:', user[0])
     if( user[0].telegramID === referer ) {
-        console.log("To be approved")
+        console.log("To be approved...")
         try{
             await ctx.approveChatJoinRequest(referee)
-            console.log("Approved")
+            ctx.reply(`Benvenuto ${ctx.update}`)
+            console.log("APPROVED", ctx.update)
         } catch(e) {
-            console.log("ERROR")
+            console.log("ERROR", e)
         }
-        newUser(ctx, 'indirect')
+        let link = await newUser(ctx, 'indirect')
+        ctx.reply(`Your link is ${link}`)
     }
 })
 

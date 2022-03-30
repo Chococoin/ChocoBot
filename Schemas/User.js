@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const { Schema, model } = mongoose
 
 const UserSchema = new Schema({
-  username : { type: String, required: false, default: 'No_Username', unique: false  },
+  username : { type: String, required: true, default: 'No_Username', unique: false },
   sinceMessageID : { type: Number, required: true },
   telegramID: { type: Number, required: true, unique: true, index: true },
   name: { type: String, required: false },
